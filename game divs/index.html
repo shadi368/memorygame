@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Game</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="style.css">
+</head>
+<body class="bg-yellow-300 font-sans">
+    <div class="grid grid-cols-10 gap-0">
+        <script>
+            const path = [0, 1, 2, 12, 22, 23, 24, 34, 44, 54, 55, 56, 57, 58, 59]; // Include 58 in the path
+            let gameStarted = false; // Game state variable
+
+            function getRandomColor() {
+                const letters = '0123456789ABCDEF';
+                let color = '#';
+                for (let i = 0; i < 6; i++) {
+                    color += letters[Math.floor(Math.random() * 16)];
+                }
+                return color;
+            }
+
+            const divs = []; // Array to hold the created divs
+
+            for (let i = 0; i < 256; i++) { // Loop to create 256 divs
+                let div = document.createElement("div");
+                div.classList.add("bg-black", "border", "border-white", "h-10", "w-full", "flex", "items-center", "justify-center");
+                
+                // Set data attribute and text content to counter
+                div.dataset.index = i + 1; // Store the index in a data attribute
+                div.textContent = div.dataset.index; // Set the text content to the index
+
+                divs.push(div); // Store the div in the array
+
+                // Click event to start the game and change colors
+                div.addEventListener('click', function() {
+                    // Start the game on first valid path click
+                    if (path.includes(i) && !gameStarted) {
+                        gameStarted = true; // Set the game to started
+                        const color = getRandomColor(); // Get a random color
+                        // Change the color of all path divs
+                        path.forEach(index => {
+                            divs[index].style.backgroundColor = color;
+                        });
+                    } else if (i === 60 && gameStarted) {
+                        alert("Congratulations! You've won the game!");
+                        resetGame();
+                    } else if (!path.includes(i)) {
+                        alert("You clicked outside the path! Game Over.");
+                        resetGame();
+                    }
+                });
+
+                // Hover event to check for game over
+                div.addEventListener('mouseover', function() {
+                    if (gameStarted && !path.includes(i)) {
+                        alert("You hovered over a non-path div! Game Over.");
+                        resetGame();
+                    } else if (i === 59) {
+                        alert("You are on div 60! Click to win!"); // Alert for hovering on div 60
+                    }
+                });
+
+                document.querySelector('.grid').appendChild(div); // Append the div to the grid container
+            }
+
+            function resetGame() {
+                // Reset all divs back to black
+                divs.forEach(d => {
+                    d.style.backgroundColor = 'black';
+                });
+                gameStarted = false; // Reset game state
+            }
+        </script>
+    </div>
+</body>
+</html>

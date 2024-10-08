@@ -1,0 +1,6 @@
+
+.hovered {
+    transform: scale(1.2); /* Make it slightly bigger */
+    transition: transform 0.3s ease-in-out, background-color 0.3s ease-in-out; /* Smooth transition */
+    /* Change background color when hovered */
+}

@@ -4,13 +4,6 @@ let level = 1;
 let loseTimeout; // Timeout for losing if the correct color isn't clicked
 let sequence = []; // To store the correct color sequence
 let playerInput = []; // Player's input
-const sounds = {
-    blue: new Audio('memorygame/sounds/blue.mp3'),
-    red: new Audio('memorygame/sounds/red.mp3'),
-    green: new Audio('memorygame/sounds/green.mp3'),
-    yellow: new Audio('memorygame/sounds/yellow.mp3')
-};
- 
 
 // Get DOM elements for buttons
 const blue = document.getElementById("1");
@@ -26,26 +19,24 @@ yellow.addEventListener("click", handleButtonClick);
 
 // Function to handle button clicks
 function handleButtonClick(event) {
-    const clickedColor = event.target; // Get the clicked color element
+    const clickedColor = event.target.id; // Get the clicked color element's ID
 
     if (!gameActive) {
-        // First click starts the game and random hover sequence
+        // First click starts the game
         gameActive = true;
         level = 1; // Start from level 1
         sequence = []; // Reset the sequence
         playerInput = []; // Reset the player input
-        startNextLevel();  // Start the first level
-       
-       
+        startNextLevel(event);  // Start the first level
     } else {
         // Game is active: Player must follow the sequence
         if (playerInput.length < sequence.length) {
-            playerInput.push(clickedColor); // Add clicked color element to player's input
-            playSound(clickedColor.id);
+            playerInput.push(clickedColor); // Add clicked color ID to player's input
+            playSound(clickedColor);
 
             // Check if the player pressed the correct sequence
             const currentIndex = playerInput.length - 1;
-            if (playerInput[currentIndex].id !== sequence[currentIndex].id) {
+            if (playerInput[currentIndex] !== sequence[currentIndex]) {
                 // Player clicked the wrong color
                 console.log("Game Over! You pressed the wrong color.");
                 resetGame();
@@ -58,7 +49,7 @@ function handleButtonClick(event) {
                     console.log("Correct sequence! Moving to the next level.");
                     level++;
                     playerInput = []; // Clear input for the next round
-                    startNextLevel();
+                    startNextLevel(event);
                 }
             }
         }
@@ -68,15 +59,17 @@ function handleButtonClick(event) {
 // Function to play the sound for a specific color
 function playSound(colorId) {
     try {
-      console.log(`Playing sound for color ${colorId}`);
-      sounds[colorId].play(); // Play the sound based on the color ID
+        console.log(`Playing sound for color ${colorId}`);
+        const audioElement = document.getElementById(`${colorId}-sound`); // Select the corresponding audio element
+        audioElement.play(); // Play the sound
     } catch (error) {
-      console.error('Error playing sound:', error);
+        console.error('Error playing sound:', error);
     }
-  }
+}
+
 // Function to get a random color element
 function getRandomColor() {
-    const colors = [blue, red, green, yellow];
+    const colors = ["1", "2", "3", "4"];
     const randomIndex = Math.floor(Math.random() * colors.length);
     return colors[randomIndex];
 }
@@ -90,12 +83,14 @@ function showSequence() {
 
     let i = 0;
     const interval = setInterval(() => {
-        const color = sequence[i]; // Get the current color
-        color.classList.add("hovered");
+        const color = document.getElementById(sequence[i]); // Get the current color element by ID
+        color.classList.add("hovered"); // Add a temporary visual effect
 
         setTimeout(() => {
-            color.classList.remove("hovered");
+            color.classList.remove("hovered"); // Remove the effect after 500ms
         }, 500); // Duration of hover
+
+        playSound(sequence[i]); // Play the corresponding sound
 
         i++;
         if (i >= sequence.length) {
@@ -104,18 +99,31 @@ function showSequence() {
     }, 1000); // Delay between showing each color
 }
 
-
 // Function to start the next level
-function startNextLevel() {
-    const randomColor = getRandomColor();
-    sequence.push(randomColor); // Add a new random color to the sequence
-    showSequence(); // Display the updated sequence
+function startNextLevel(event) {
+    // Check if it's the first level and use the player's first click
+    if (level === 1 && playerInput.length === 0) {
+        const clickedColor = event.target.id; // Capture the color the player clicked
+        sequence.push(clickedColor); // Add the clicked color to the sequence
+        showSequence(); // Display the updated sequence
 
-    document.getElementById("level").innerText = `Level: ${level}`; // Update level display
-    loseTimeout = setTimeout(() => {
-        console.log("Game Over! Time ran out.");
-        resetGame();
-    }, 10000); // Example timeout of 10 seconds to respond
+        document.getElementById("level").innerText = `Level: ${level}`; // Update level display
+        loseTimeout = setTimeout(() => {
+            console.log("Game Over! Time ran out.");
+            resetGame();
+        }, 10000); // Timeout of 10 seconds for the player to click the correct color
+    } else {
+        // Proceed with generating a random color for subsequent levels
+        const randomColor = getRandomColor();
+        sequence.push(randomColor); // Add a new random color to the sequence
+        showSequence(); // Display the updated sequence
+
+        document.getElementById("level").innerText = `Level: ${level}`; // Update level display
+        loseTimeout = setTimeout(() => {
+            console.log("Game Over! Time ran out.");
+            resetGame();
+        }, 10000); // Example timeout of 10 seconds to respond
+    }
 }
 
 // Function to reset the game
@@ -129,4 +137,3 @@ function resetGame() {
     document.getElementById("level").innerText = `Level: ${level}`; // Reset level display
     console.log("Game has been reset.");
 }
-
